@@ -1,7 +1,7 @@
 LSTM COVID-19
 ========================
 
-This project contains application source code for predict daily cases of COVID-19 using Long Short-Term Models. Basically, the package has a main module (core) and submodules (lstm_covid and forecasting) to with functions to tunning models and predict daily cases using time series data of COVID pandemic.
+This project contains application source code to predict daily cases of COVID-19 using Long Short-Term Models. Basically, the package has a main module (core) and submodules (lstm_covid and forecasting) with functions to tunning models and predict daily cases using time series data of COVID pandemic.
 
 Release Notes
 -------------
@@ -68,4 +68,4 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 Authors
 -------
 
-`lstm_covid` was written by `Luis Ricardo <luisricardoengcomp@gmail.com>`_ `Marcos Rodrigues <marcos.rodrigues@inpe.br>`_.
+`lstm_covid` was written by `Luis Ricardo <luisricardoengcomp@gmail.com>`_ and `Marcos Rodrigues <marcos.rodrigues@inpe.br>`_.
