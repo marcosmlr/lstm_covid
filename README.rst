@@ -23,10 +23,10 @@ Build Steps
 
 With Conda installed [#]_, run::
 
-  $ git clone  https://gitlab.dpi.inpe.br/managementMetadataFromRS/managementMetadataFromRS.git
-  $ cd managementMetadataFromRS
+  $ git clone  https://github.com/marcosmlr/lstm_covid.git
+  $ cd lstm_covid
   $ make install
-  $ source activate managementMetadataFromRS
+  $ source activate lstm
 
 .. [#] If you are using a git server inside a private network and are using a self-signed certificate or a certificate over an IP address ; you may also simply use the git global config to disable the ssl checks::
 
@@ -42,7 +42,7 @@ See core.py --help for command line details.
 Data Processing Requirements
 ----------------------------
 
-This version of the application requires the input files to be in the GeoTIFF format, compressed or not with zip or gzip.
+This version of the application requires the input files to be in the Comma Separated Values (CSV) format.
 
 
 Disclaimer
@@ -56,7 +56,7 @@ Licence
 
 MIT License
 
-Copyright (c) 2019 Marcos Rodrigues
+Copyright (c) 2020 Luis Ricardo and Marcos Rodrigues
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -68,4 +68,4 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 Authors
 -------
 
-`managementMetadataFromRS` was written by `Marcos Rodrigues <marcos.rodrigues@inpe.br>`_.
+`lstm_covid` was written by `Luis Ricardo <luisricardoengcomp@gmail.com>`_ `Marcos Rodrigues <marcos.rodrigues@inpe.br>`_.
