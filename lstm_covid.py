@@ -19,6 +19,8 @@ import matplotlib.pyplot as plt
 import ast #to eval python expression from strings
 from Utils import mkdir_p
 
+plt.style.use('ggplot')
+
 path = os.getcwd()
 
 # --------------------------
@@ -226,33 +228,81 @@ def geraValidacao(input_file,pais,modelo,**kwargs):
     
     """
     
-    daily_cases = organizar_dados(input_file,pais)    
+    daily_cases = organizar_dados(input_file,pais)
     dados_covid, X,y, input_array, scaler = preparar_dados(daily_cases, kwargs['n_entradas'], kwargs['n_saidas'])
+
+##    times = pd.date_range(daily_cases.index[-1], periods=kwargs['n_saidas']+1, freq='D')
+##    df_predict = pd.DataFrame(data=predicted_serie_transform[len(dados_covid)-1:],    # values
+##                          index=times,    # index
+##                          columns=['daily_cases'])
     
     list_pred = []
-    for i in range(0, len(dados_covid), kwargs['n_saidas']):
+    date_pred = []
+    list_true = []
+    #for i in range(0, len(dados_covid), kwargs['n_saidas']):
+    i=0
+    while i < len(dados_covid) - kwargs['n_entradas']:
         input_array_test =  np.array(dados_covid[i:(i+kwargs['n_entradas'])])
-        while len(input_array_test) < kwargs['n_entradas']:
-              input_array_test = np.append(input_array_test,[0],axis = None)
+        #while len(input_array_test) < kwargs['n_entradas']:
+        #      input_array_test = np.append(input_array_test,[0],axis = None)
         y_predict_val_test = predict(modelo,input_array_test,kwargs['n_entradas'])
         list_pred.append(y_predict_val_test)
-    
-    plt.figure()
+        
+        times = pd.date_range(daily_cases.index[i+kwargs['n_entradas']], periods=kwargs['n_saidas'], freq='D')
+        date_pred.append(times)
+        list_true.append(np.array(dados_covid[(i+kwargs['n_entradas']):(i+kwargs['n_entradas']+kwargs['n_saidas'])]))
+##        print('i:',i)
+##        print('input_array_test:',input_array_test)
+##        print('y_predict_val_test:',y_predict_val_test)
+##        print('true:',true)
+##
+##        print('dados_covid entrada +1:',np.array(dados_covid[i:(i+kwargs['n_entradas']+1)]))
+
+##        if i > 25:
+##            break
+                    
+        i += 1
+
+    #dict_pred = {'date':np.concatenate((date_pred[:])),'daily_cases':np.concatenate((list_pred[:]))}
+    #df_predict = pd.DataFrame(dict_pred)
+        
     concatenado = np.concatenate((list_pred[:]))
-    true = dados_covid[kwargs['n_entradas']:len(concatenado)+kwargs['n_entradas']]
+    true = np.concatenate((list_true[:]))
+##    true = dados_covid[kwargs['n_entradas']:len(concatenado)+kwargs['n_entradas']]
 
     if len(true) < len(concatenado):
         lim = (len(concatenado) - len(true))
         concatenado = concatenado[0:len(concatenado) - lim]
         
     score_rmse = math.sqrt(mean_squared_error(concatenado, true))
-    
-    plt.plot(concatenado,'r--', label = 'Predicted Values')
-    plt.plot(true,'b',label = 'True Values')
-    plt.xlabel('Days Since First Case')
-    plt.ylabel('Daily Confirmed Cases')
-    plt.legend(loc ='upper right')
-    plt.title('Prediction Score to %s: %.4f RMSE' % (pais,score_rmse))
+
+    print(daily_cases.daily_cases.values)
+
+    #plot data    
+    plt.figure() # In this example, all the plots will be in one figure.
+    plt.grid()
+    for i in range(len(date_pred)):
+        ax = plt.plot(date_pred[i],list_pred[i])
+
+    plt.plot(daily_cases.index,dados_covid, color='black');
+    plt.show()
+    exit()
+##    ax = daily_cases.plot(color='blue');
+##    #ax = df_predict.plot(style='--', color='red');
+    plt.plot(df_predict.date,df_predict.daily_cases,'r--', label = 'Predicted Values');
+##    daily_cases.plot(ax=ax,color='blue');
+##
+##    # specify the lines and labels of the first legend
+##    ax.legend(['Predicted Values', 'True Values'],
+##          loc='upper right', frameon=False)
+
+##    plt.grid()    
+##    plt.plot(concatenado,'r--', label = 'Predicted Values')
+##    plt.plot(true,'b',label = 'True Values')
+##    plt.xlabel('Days Since First Case')
+##    plt.ylabel('Daily Confirmed Cases')
+##    plt.legend(loc ='upper right')
+##    plt.title('Prediction Score to %s: %.4f RMSE' % (pais,score_rmse))
     
     print("Prediction Score to ",pais," [RMSE]: ", score_rmse)
     score = {'score_rmse':score_rmse}
@@ -278,6 +328,9 @@ def geraValidacao(input_file,pais,modelo,**kwargs):
 '''
 def geraPrevisao(input_file,pais,modelo,**kwargs):
     logging.captureWarnings(True)
+    import datetime
+
+    print(datetime.datetime(2015,7,1).strftime('%B'))
 
     mem = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     print("Memory usage at Starting geraPrevisao is: {0} KB".format(mem))
@@ -294,7 +347,7 @@ def geraPrevisao(input_file,pais,modelo,**kwargs):
     dados_covid, X,y, input_array, scaler = preparar_dados(daily_cases, kwargs['n_entradas'], kwargs['n_saidas'])
 
     start_ts = len(dados_covid) - kwargs['n_entradas']
-    end_ts = len(dados_covid) - 1
+    end_ts = len(dados_covid)
     input_array_2 =  np.array(dados_covid[start_ts:end_ts])
 
     y_predict_val = predict(modelo,input_array_2,kwargs['n_entradas'])
@@ -302,15 +355,26 @@ def geraPrevisao(input_file,pais,modelo,**kwargs):
     predicted_serie_transform = scaler.inverse_transform(predicted_serie.reshape(len(predicted_serie),1))
     dados_covid_transform = scaler.inverse_transform(dados_covid.reshape(len(dados_covid),1))
 
-    last_day = daily_cases.iloc[-1,1]
+    last_day = daily_cases.index[-1]
+    last_day = str('{:%d %B %Y}'.format(last_day))
 
-    plt.plot(predicted_serie_transform,'r--',label = 'Predicted Values')
-    plt.plot(dados_covid_transform,'b',label = 'Confirmed Cases until '+str(last_day),linewidth=3.0)
+    times = pd.date_range(daily_cases.index[-1], periods=kwargs['n_saidas']+1, freq='D')
+    df_predict = pd.DataFrame(data=predicted_serie_transform[len(dados_covid)-1:],    # values
+                          index=times,    # index
+                          columns=['daily_cases'])
 
-    plt.xlabel('Days Since First Case')
-    plt.ylabel('Daily Confirmed Cases')
-    plt.legend(loc ='upper left')
-    plt.title('Forecasting for '+pais+' Daily COVID-19 Cases, Next '+str(kwargs['n_saidas'])+' days')
+    #plot data
+    plt.grid()
+    ax = df_predict.plot(style='--', color='red');
+    daily_cases.plot(ax=ax,color='blue');
+
+    # specify the lines and labels of the first legend
+    ax.legend(['Predicted Values', 'Confirmed Cases until '+ last_day],
+          loc='upper right', frameon=False)
+
+    ax.set_title('Forecasting for '+pais+' daily COVID-19 cases, next '+str(kwargs['n_saidas'])+' days')
+    ax.set_ylabel('Number of Daily Cases')
+    ax.set_xlabel('Date since first case ['+str('{:%Y-%m-%d}'.format(daily_cases.index[0]))+']')
 
     #Save result graph
     output_dir = 'results'

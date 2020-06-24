@@ -72,13 +72,37 @@ def main(argv):
 
 
     if argv.i is not None:
-        try:
-            model = lstm_covid.gerarTreinamento_parametros(argv.i,argv.country,**keyword_args)
-            lstm_covid.geraValidacao(argv.i,argv.country,model,**keyword_args)            
-        except Exception as err:
-            print('Please, see the log file for information about the exception occurred!')
-            log.exception("Error while running gerarTreinamento e geraValidacao:\n %s", err)
-            return 1
+        model_name = os.path.join('saved_models',"Modelo_"+argv.country.replace(" ", "")+"_in"+str(keyword_args['n_entradas'])+'_out'+str(keyword_args['n_saidas'])+'_epochs'+str(keyword_args['epochs'])+'_batch'+str(keyword_args['batch'])+".sav")
+            
+        if os.path.exists(model_name):
+            opc = input('\nA model with these parameters already exists, you just want: \n1. Validate the model \n2. Overwrite it? \n-> ')
+
+            best_choise = False
+            while best_choise != True:
+                while not opc.isnumeric():
+                    opc = input('Please, choose (1) Validate or (2) Overwrite the model -> ')
+
+                if 0 < int(opc) < 3:
+                    best_choise = True
+                else:
+                    opc = 'NaN'
+        
+        if opc == '1':
+            try:
+                model = lstm_covid.carregaModelo(model_name)
+                lstm_covid.geraValidacao(argv.i,argv.country,model,**keyword_args)
+            except Exception as err:
+                print('Please, see the log file for information about the exception occurred!')
+                log.exception("Error while running geraValidacao:\n %s", err)
+                return 1
+        elif opc == '2':            
+            try:
+                model = lstm_covid.gerarTreinamento_parametros(argv.i,argv.country,**keyword_args)
+                lstm_covid.geraValidacao(argv.i,argv.country,model,**keyword_args)            
+            except Exception as err:
+                print('Please, see the log file for information about the exception occurred!')
+                log.exception("Error while running gerarTreinamento e geraValidacao:\n %s", err)
+                return 1
        
     mem = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     print("Memory usage at Finishing program is: {0} KB".format(mem))
@@ -107,7 +131,7 @@ if __name__ == "__main__":
                         metavar='country_name', type=str, required=True)
 
     # Using argparse with function that takes kwargs argument - https://stackoverflow.com/a/33712815
-    parser.add_argument("-keyword_args", help="Extra args. Example usage: n_entradas=5 n_saidas=7 epochs=50 batch=2", nargs='*', action=Action)
+    parser.add_argument("-keyword_args", help="Extra args (Not required, program has default values). Example usage: n_entradas=5 n_saidas=7 epochs=50 batch=2", nargs='*', action=Action)
 
     
     

@@ -5,6 +5,8 @@
 # --------------------------
 import argparse
 import sys, os
+import glob
+import re
 import numpy as np
 import resource
 import logging
@@ -69,44 +71,50 @@ def main(argv):
     argv.country = ' '.join(argv.country) #Handle arguments with spaces
 
     if argv.i is not None:
-        try:
-            model_name = os.path.join('saved_models',"Modelo_"+argv.country.replace(" ", "")+"_in"+str(kwargs['n_entradas'])+'_out'+str(kwargs['n_saidas'])+'_epochs'+str(kwargs['epochs'])+'_batch'+str(kwargs['batch'])+".sav")
+        model_name = os.path.join('saved_models',"Modelo_"+argv.country.replace(" ", "")+"_in"+str(keyword_args['n_entradas'])+'_out'+str(keyword_args['n_saidas'])+'_epochs'+str(keyword_args['epochs'])+'_batch'+str(keyword_args['batch'])+".sav")
             
-            if os.path.exists(model_name):
-                model = lstm_covid.carregaModelo(model_name)
-            else:
-                models_list = glob.glob(os.path.join("saved_models","*"+argv.country.replace(" ", "")+"*.sav"))
+        if not os.path.exists(model_name):
+            models_list = glob.glob(os.path.join("saved_models","*"+argv.country.replace(" ", "")+"*.sav"))
 
-                for i, item in enumerate(models_list, 1):
-                    print(i, '. ' + item)
+            for i, item in enumerate(models_list, 1):
+                print(str(i)+'. ' + item)
 
-                opc = input('\nWhat model you want to choose? ')
+            opc = input('\nWhat model do you want to choose? ')
 
-                best_choise = False
-                while best_choise != True:
-                    while not opc.isnumeric():
-                        opc = input('What model you want to choose? ')
+            best_choise = False
+            while best_choise != True:
+                while not opc.isnumeric():
+                    opc = input('What model do you want to choose? ')
 
-                    if 0 < int(opc) < (len(teste)+1):
-                        best_choise = True
-                    else:
-                        opc = 'NaN'
+                if 0 < int(opc) <= (len(models_list)):
+                    best_choise = True
+                else:
+                    opc = 'NaN'
 
-                model_name = models_list[int(opc)-1]
+            model_name = models_list[int(opc)-1]            
+            
+            m = re.search('_in(\d+)', model_name, re.IGNORECASE)
+            if m is not None:
+                keyword_args['n_entradas'] = int(m.group(1))
 
-                model = lstm_covid.carregaModelo(model_name)
-                
-                m = re.search('_in(\d+)', model_name, re.IGNORECASE)
-                if m is not None:
-                    keyword_args['n_entradas'] = m.group(1)
+            m = re.search('_out(\d+)', model_name, re.IGNORECASE)
+            if m is not None:
+                keyword_args['n_saidas'] = int(m.group(1))
 
-                m = re.search('_out(\d+)', model_name, re.IGNORECASE)
-                if m is not None:
-                    keyword_args['n_saidas'] = m.group(1)                    
-    
-            lstm_covid.geraValidacao(argv.i,argv.country,model,**keyword_args)            
+            m = re.search('_epochs(\d+)', model_name, re.IGNORECASE)
+            if m is not None:
+                keyword_args['epochs'] = int(m.group(1))
+
+            m = re.search('_batch(\d+)', model_name, re.IGNORECASE)
+            if m is not None:
+                keyword_args['batch'] = int(m.group(1))
+        
+        try:
+            model = lstm_covid.carregaModelo(model_name)
+            lstm_covid.geraPrevisao(argv.i,argv.country,model,**keyword_args)            
         except Exception as err:
-            log.exception("Error while running gerarTreinamento e geraValidacao:\n %s", err)
+            print('Please, see the log file for information about the exception occurred!')
+            log.exception("Error while running carregaModelo e geraPrevisao:\n %s", err)
             return 1
        
     mem = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
@@ -126,7 +134,7 @@ if __name__ == "__main__":
     import arghelper
 
     parser = argparse.ArgumentParser(
-        description='Forercasting cases of COVID-19 using LSTM models tunned.')
+        description='Forecasting daily cases of COVID-19 using LSTM models tunned.')
 
     parser.add_argument('-i',
                        help='Input file of time serie, for example /home/daily_case.csv. With collums (Region,Code,Date,DailyCases)',
@@ -136,7 +144,7 @@ if __name__ == "__main__":
                         metavar='country_name', type=str, required=True)
 
     # Using argparse with function that takes kwargs argument - https://stackoverflow.com/a/33712815
-    parser.add_argument("-keyword_args", help="Extra args. Example usage: n_entradas=5 n_saidas=7 epochs=50 batch=2", nargs='*', action=Action)
+    parser.add_argument("-keyword_args", help="Extra args (Not required, program has default values). Example usage: n_entradas=5 n_saidas=7 epochs=50 batch=2", nargs='*', action=Action)
 
     
     if len(sys.argv) == 1:
