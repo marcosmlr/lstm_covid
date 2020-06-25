@@ -1,7 +1,7 @@
 LSTM COVID-19
 ========================
 
-This project contains an application source code to predict daily cases of COVID-19 using Long Short-Term Models. Basically, the package has a main module (core) and submodules (lstm_covid and forecasting) with functions to tuning models and predict daily cases using time series data of COVID pandemic.
+This project contains an application source code to predict daily cases of COVID-19 using Long Short-Term Memory network models. Basically, the package has a main module (core) and submodules (lstm_covid and forecasting) with functions to tuning models and predict daily cases using time series data of COVID pandemic.
 
 Release Notes
 -------------
