@@ -36,7 +36,13 @@ With Conda installed [#]_, run::
 Usage
 -----
 
-See core.py --help for command line details.
+Source codes modules:
+
+ - core.py - the main program enables to create and validate LSTM models using required and default parameters or extra_args
+       See core.py --help for command line details
+ - lstm_covid.py - functions necessary to create, tuning and validate models
+ - forecasting.py - program to forecasting daily cases of COVID-19 using tuned models using required and default parameters or extra_args
+       See forecasting.py --help for command line details
 
 
 Data Processing Requirements

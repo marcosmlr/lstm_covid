@@ -230,45 +230,17 @@ def geraValidacao(input_file,pais,modelo,**kwargs):
     
     daily_cases = organizar_dados(input_file,pais)
     dados_covid, X,y, input_array, scaler = preparar_dados(daily_cases, kwargs['n_entradas'], kwargs['n_saidas'])
-
-##    times = pd.date_range(daily_cases.index[-1], periods=kwargs['n_saidas']+1, freq='D')
-##    df_predict = pd.DataFrame(data=predicted_serie_transform[len(dados_covid)-1:],    # values
-##                          index=times,    # index
-##                          columns=['daily_cases'])
     
     list_pred = []
-    date_pred = []
-    list_true = []
-    #for i in range(0, len(dados_covid), kwargs['n_saidas']):
-    i=0
-    while i < len(dados_covid) - kwargs['n_entradas']:
+    for i in range(0, len(dados_covid), kwargs['n_saidas']):
         input_array_test =  np.array(dados_covid[i:(i+kwargs['n_entradas'])])
-        #while len(input_array_test) < kwargs['n_entradas']:
-        #      input_array_test = np.append(input_array_test,[0],axis = None)
+        while len(input_array_test) < kwargs['n_entradas']:
+              input_array_test = np.append(input_array_test,[0],axis = None)
         y_predict_val_test = predict(modelo,input_array_test,kwargs['n_entradas'])
-        list_pred.append(y_predict_val_test)
-        
-        times = pd.date_range(daily_cases.index[i+kwargs['n_entradas']], periods=kwargs['n_saidas'], freq='D')
-        date_pred.append(times)
-        list_true.append(np.array(dados_covid[(i+kwargs['n_entradas']):(i+kwargs['n_entradas']+kwargs['n_saidas'])]))
-##        print('i:',i)
-##        print('input_array_test:',input_array_test)
-##        print('y_predict_val_test:',y_predict_val_test)
-##        print('true:',true)
-##
-##        print('dados_covid entrada +1:',np.array(dados_covid[i:(i+kwargs['n_entradas']+1)]))
-
-##        if i > 25:
-##            break
-                    
-        i += 1
-
-    #dict_pred = {'date':np.concatenate((date_pred[:])),'daily_cases':np.concatenate((list_pred[:]))}
-    #df_predict = pd.DataFrame(dict_pred)
+        list_pred.append(y_predict_val_test)    
         
     concatenado = np.concatenate((list_pred[:]))
-    true = np.concatenate((list_true[:]))
-##    true = dados_covid[kwargs['n_entradas']:len(concatenado)+kwargs['n_entradas']]
+    true = dados_covid[kwargs['n_entradas']:len(concatenado)+kwargs['n_entradas']]
 
     if len(true) < len(concatenado):
         lim = (len(concatenado) - len(true))
@@ -276,33 +248,23 @@ def geraValidacao(input_file,pais,modelo,**kwargs):
         
     score_rmse = math.sqrt(mean_squared_error(concatenado, true))
 
-    print(daily_cases.daily_cases.values)
-
+    times = pd.date_range(daily_cases.index[0+kwargs['n_entradas']], periods=len(concatenado), freq='D')    
+    df_predict = pd.DataFrame(index=times, data= concatenado, columns=['daily_cases'])
+    
+    df_daily_cases = pd.DataFrame(index=daily_cases.index, data=dados_covid, columns=['daily_cases'])
+    
     #plot data    
-    plt.figure() # In this example, all the plots will be in one figure.
     plt.grid()
-    for i in range(len(date_pred)):
-        ax = plt.plot(date_pred[i],list_pred[i])
+    ax = df_daily_cases.plot(color='blue')
+    df_predict.plot(style='--', color='red', ax=ax)
 
-    plt.plot(daily_cases.index,dados_covid, color='black');
-    plt.show()
-    exit()
-##    ax = daily_cases.plot(color='blue');
-##    #ax = df_predict.plot(style='--', color='red');
-    plt.plot(df_predict.date,df_predict.daily_cases,'r--', label = 'Predicted Values');
-##    daily_cases.plot(ax=ax,color='blue');
-##
-##    # specify the lines and labels of the first legend
-##    ax.legend(['Predicted Values', 'True Values'],
-##          loc='upper right', frameon=False)
+    # specify the lines and labels of the first legend
+    ax.legend(['True Values', 'Predicted Values'],
+          loc='upper right', frameon=False)
 
-##    plt.grid()    
-##    plt.plot(concatenado,'r--', label = 'Predicted Values')
-##    plt.plot(true,'b',label = 'True Values')
-##    plt.xlabel('Days Since First Case')
-##    plt.ylabel('Daily Confirmed Cases')
-##    plt.legend(loc ='upper right')
-##    plt.title('Prediction Score to %s: %.4f RMSE' % (pais,score_rmse))
+    ax.set_title('Prediction Score to %s: %.4f RMSE' % (pais,score_rmse))
+    ax.set_ylabel('Number of Daily Cases')
+    ax.set_xlabel('Date since first case ['+str('{:%Y-%m-%d}'.format(daily_cases.index[0]))+']')
     
     print("Prediction Score to ",pais," [RMSE]: ", score_rmse)
     score = {'score_rmse':score_rmse}
