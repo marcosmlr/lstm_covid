@@ -73,7 +73,8 @@ def main(argv):
 
     if argv.i is not None:
         model_name = os.path.join('saved_models',"Modelo_"+argv.country.replace(" ", "")+"_in"+str(keyword_args['n_entradas'])+'_out'+str(keyword_args['n_saidas'])+'_epochs'+str(keyword_args['epochs'])+'_batch'+str(keyword_args['batch'])+".sav")
-            
+
+        opc = '2' #Starting option to create new model    
         if os.path.exists(model_name):
             opc = input('\nA model with these parameters already exists, you just want: \n1. Validate the model \n2. Overwrite it? \n-> ')
 
@@ -128,7 +129,7 @@ if __name__ == "__main__":
                         metavar='input_file', type=lambda x: arghelper.is_valid_file(parser, x), required=True)
     
     parser.add_argument('-country', nargs='+', help='Name of region as like in input time serie data, for example Italy or Bosnia and Herzegovina.',
-                        metavar='country_name', type=str, required=True)
+                        metavar='country_name', type=lambda x: arghelper.is_valid_string(parser, x), required=True)
 
     # Using argparse with function that takes kwargs argument - https://stackoverflow.com/a/33712815
     parser.add_argument("-keyword_args", help="Extra args (Not required, program has default values). Example usage: n_entradas=5 n_saidas=7 epochs=50 batch=2", nargs='*', action=Action)

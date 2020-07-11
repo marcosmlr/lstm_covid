@@ -12,6 +12,7 @@ code was adapted from https://codereview.stackexchange.com posted for Matthew Ra
 # Fonte: https://codereview.stackexchange.com/questions/28608/checking-if-cli-arguments-are-valid-files-directories-in-python
 
 import os
+import string
 
 
 def is_valid_file(parser, arg):
@@ -27,4 +28,10 @@ def is_valid_directory(parser, arg):
         parser.error('The directory {} does not exist!'.format(arg))
     else:
         # File exists so return the directory
+        return arg
+
+def is_valid_string(parser, arg):
+    if [True for s in string.punctuation if s in arg]:
+        parser.error('The string {} contains punctuation characters not allowed to country name!'.format(arg))
+    else:
         return arg
