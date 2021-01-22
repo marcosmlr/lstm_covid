@@ -70,52 +70,51 @@ def main(argv):
     #https://stackoverflow.com/questions/18157376/handle-spaces-in-argparse-input
     argv.country = ' '.join(argv.country) #Handle arguments with spaces
 
-    if argv.i is not None:
-        model_name = os.path.join('saved_models',"Modelo_"+argv.country.replace(" ", "")+"_in"+str(keyword_args['n_entradas'])+'_out'+str(keyword_args['n_saidas'])+'_epochs'+str(keyword_args['epochs'])+'_batch'+str(keyword_args['batch'])+".sav")
-            
-        if not os.path.exists(model_name):
-            models_list = glob.glob(os.path.join("saved_models","*"+argv.country.replace(" ", "")+"*.sav"))
-
-            for i, item in enumerate(models_list, 1):
-                print(str(i)+'. ' + item)
-
-            opc = input('\nWhat model do you want to choose? ')
-
-            best_choise = False
-            while best_choise != True:
-                while not opc.isnumeric():
-                    opc = input('What model do you want to choose? ')
-
-                if 0 < int(opc) <= (len(models_list)):
-                    best_choise = True
-                else:
-                    opc = 'NaN'
-
-            model_name = models_list[int(opc)-1]            
-            
-            m = re.search('_in(\d+)', model_name, re.IGNORECASE)
-            if m is not None:
-                keyword_args['n_entradas'] = int(m.group(1))
-
-            m = re.search('_out(\d+)', model_name, re.IGNORECASE)
-            if m is not None:
-                keyword_args['n_saidas'] = int(m.group(1))
-
-            m = re.search('_epochs(\d+)', model_name, re.IGNORECASE)
-            if m is not None:
-                keyword_args['epochs'] = int(m.group(1))
-
-            m = re.search('_batch(\d+)', model_name, re.IGNORECASE)
-            if m is not None:
-                keyword_args['batch'] = int(m.group(1))
+    model_name = os.path.join('saved_models',"Modelo_"+argv.country.replace(" ", "")+"_in"+str(keyword_args['n_entradas'])+'_out'+str(keyword_args['n_saidas'])+'_epochs'+str(keyword_args['epochs'])+'_batch'+str(keyword_args['batch'])+".sav")
         
-        try:
-            model = lstm_covid.carregaModelo(model_name)
-            lstm_covid.geraPrevisao(argv.i,argv.country,model,**keyword_args)            
-        except Exception as err:
-            print('Please, see the log file for information about the exception occurred!')
-            log.exception("Error while running carregaModelo e geraPrevisao:\n %s", err)
-            return 1
+    if not os.path.exists(model_name):
+        models_list = glob.glob(os.path.join("saved_models","*"+argv.country.replace(" ", "")+"*.sav"))
+
+        for i, item in enumerate(models_list, 1):
+            print(str(i)+'. ' + item)
+
+        opc = input('\nWhat model do you want to choose? ')
+
+        best_choise = False
+        while best_choise != True:
+            while not opc.isnumeric():
+                opc = input('What model do you want to choose? ')
+
+            if 0 < int(opc) <= (len(models_list)):
+                best_choise = True
+            else:
+                opc = 'NaN'
+
+        model_name = models_list[int(opc)-1]            
+        
+        m = re.search('_in(\d+)', model_name, re.IGNORECASE)
+        if m is not None:
+            keyword_args['n_entradas'] = int(m.group(1))
+
+        m = re.search('_out(\d+)', model_name, re.IGNORECASE)
+        if m is not None:
+            keyword_args['n_saidas'] = int(m.group(1))
+
+        m = re.search('_epochs(\d+)', model_name, re.IGNORECASE)
+        if m is not None:
+            keyword_args['epochs'] = int(m.group(1))
+
+        m = re.search('_batch(\d+)', model_name, re.IGNORECASE)
+        if m is not None:
+            keyword_args['batch'] = int(m.group(1))
+    
+    try:
+        model = lstm_covid.carregaModelo(model_name)
+        lstm_covid.geraPrevisao(argv.i,argv.country,model,**keyword_args)            
+    except Exception as err:
+        print('Please, see the log file for information about the exception occurred!')
+        log.exception("Error while running carregaModelo e geraPrevisao:\n %s", err)
+        return 1
        
     mem = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     print("Memory usage at Finishing program is: {0} KB".format(mem))

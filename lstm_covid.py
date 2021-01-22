@@ -230,12 +230,14 @@ def geraValidacao(input_file,pais,modelo,**kwargs):
     
     daily_cases = organizar_dados(input_file,pais)
     dados_covid, X,y, input_array, scaler = preparar_dados(daily_cases, kwargs['n_entradas'], kwargs['n_saidas'])
-    
+
     list_pred = []
     for i in range(0, len(dados_covid), kwargs['n_saidas']):
         input_array_test =  np.array(dados_covid[i:(i+kwargs['n_entradas'])])
+        
         while len(input_array_test) < kwargs['n_entradas']:
               input_array_test = np.append(input_array_test,[0],axis = None)
+                
         y_predict_val_test = predict(modelo,input_array_test,kwargs['n_entradas'])
         list_pred.append(y_predict_val_test)    
         
@@ -245,7 +247,7 @@ def geraValidacao(input_file,pais,modelo,**kwargs):
     if len(true) < len(concatenado):
         lim = (len(concatenado) - len(true))
         concatenado = concatenado[0:len(concatenado) - lim]
-        
+
     score_rmse = math.sqrt(mean_squared_error(concatenado, true))
 
     times = pd.date_range(daily_cases.index[0+kwargs['n_entradas']], periods=len(concatenado), freq='D')    
